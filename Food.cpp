@@ -2,7 +2,15 @@
 #include "movingobjects.h"
 
 Food::Food(int x, int y, int rad, int speed) : x(x), y(y), rad(rad), speed(speed) {
-
+	int temp = rand() % 3 - 2;
+	if (temp < 0) {
+		this->score = -(rad);
+		this->healthy = false;
+	}
+	else {
+		this->score = rad;
+		this->healthy = true;
+	}
 }
 
 Food::~Food(){
@@ -10,8 +18,9 @@ Food::~Food(){
 }
 
 void Food::Draw(wxPaintDC &dc) {
-	dc.SetBrush(wxBrush(wxColour(*wxBLUE)));
-	dc.SetPen(wxPen(wxColor(*wxBLACK), 1, wxPENSTYLE_SOLID));
+	if (this->healthy) dc.SetBrush(wxBrush(wxColour(*wxBLUE)));
+	else dc.SetBrush(wxBrush(wxColour(*wxRED)));
+	dc.SetPen(wxPen(wxColor(*wxWHITE), 1, wxPENSTYLE_SOLID));
 	dc.DrawCircle(wxPoint(this->x, this->y), wxCoord(this->rad));
 }
 
@@ -63,4 +72,16 @@ int Food::getydir(void) {
 void Food::setxydir(int xdir, int ydir) {
 	this->xDirection = xdir;
 	this->yDirection = ydir;
+}
+
+bool Food::isHealthy(void) {
+	return this->healthy;
+}
+
+void Food::setHealthy(bool h) {
+	this->healthy = h;
+}
+
+int Food::getScore(void) {
+	return this->score;
 }

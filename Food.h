@@ -17,8 +17,12 @@ public:
 	int getxdir(void);
 	int getydir(void);
 	void setxydir(int xdir, int ydir);
+	bool isHealthy(void);
+	void setHealthy(bool h);
+	int getScore(void);
 private:
 	//sizing
 	int x, y, xDirection, yDirection, rad, speed, score;
+	bool healthy = true;
 };
 

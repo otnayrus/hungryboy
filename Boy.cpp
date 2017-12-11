@@ -65,3 +65,30 @@ void Boy::setHex(bool h) {
 void Boy::addSpeed(int speed) {
 	this->speed += speed;
 }
+
+void Boy::addScore(int x) {
+	this->score += x;
+}
+
+int Boy::getScore(void) {
+	return this->score;
+}
+
+bool Boy::isOut(int Xout, int Yout) {
+	if (x + rad >= Xout || x - rad <= 0 ||y + rad >= Yout || y - rad <= 0) {
+		return true;
+	}
+	return false;
+}
+
+void Boy::respawn(void) {
+	this->x = 400;
+	this->y = 300;
+	this->xDirection = 0;
+	this->yDirection = 0;
+}
+
+int Boy::lifemod(int l) {
+	this->life += l;
+	return this->life;
+}

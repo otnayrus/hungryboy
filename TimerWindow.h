@@ -16,21 +16,18 @@ public:
 	void OnKeyDown(wxKeyEvent &event);
 	void OnKeyUp(wxKeyEvent &event);
 	bool RectCircleCollide(Boy * c, Slider * b);
+	bool CircleCollide(Food * a, Boy *b);
+	void Pause(void);
 private:
-	int dirX, dirY, hexcounter = 0;
-	bool boost = false;
-	wxPNGHandler *handler = new wxPNGHandler;
-	wxStaticBitmap *image,*image2;
-	wxBitmap * bm;
-	wxImage mage;
+	int dirX, dirY, hexcounter = 0 , mod = 12;
+	bool boost = false, isPaused = false , isOver = false;
 	wxTimer *timer;
 	Boy * mainc;
 	Slider * seto;
-	pair< Food *, wxStaticBitmap * > foodp, food2p;
 	Food * food, *food2;
-	vector< pair< Food * , wxStaticBitmap * > >vc;
-	vector< pair< Food *, wxStaticBitmap * > >::iterator it;
-	vector< pair< Food *, wxStaticBitmap * > >::iterator it2;
+	vector< Food * >vc;
+	vector< Food * >::iterator it;
+	vector< Food * >::iterator it2;
 
 	vector<Slider *>vs;
 	vector<Slider *>::iterator st;

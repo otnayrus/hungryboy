@@ -22,8 +22,6 @@ TimerWindow::TimerWindow(wxFrame *frame) : wxWindow(frame, wxID_ANY) {
 	timer = new wxTimer(this, TIMER_ID);
 	mainc = new Boy(300, 300, 20, 10);
 	seto = new Slider(0, 300, 20, 10, 10);
-
-	wxImage::AddHandler(handler);
 	
 	//memulai timer dengan interval 25ms . bebas bisa diisi apa.
 	timer->Start(50);
@@ -33,9 +31,8 @@ TimerWindow::~TimerWindow() {
 	timer->Stop();
 	delete timer;
 	for (int i = 0; i < vc.size(); i++) {
-		foodp = vc[i];
-		delete foodp.first;
-		delete foodp.second;
+		food = vc[i];
+		delete food;
 	}
 	delete mainc;
 	delete seto;
@@ -46,71 +43,66 @@ void TimerWindow::OnPaint(wxPaintEvent &event) {
 	mainc->Draw(pdc);
 	seto->Draw(pdc);
 	for (it = vc.begin(); it < vc.end(); it++) {
-		food2p = *it;
-		food2 = food2p.first;
+		food2 = *it;
 		food2->Draw(pdc);
 	}
 }
 
 void TimerWindow::OnTimer(wxTimerEvent &event) {
-	static int counter = 0;
-	wxMessageOutputDebug().Printf("wxTimer event %d.", counter++);
-	if (counter % 25 == 0) {
+	static long long counter = 0;
+	if (isOver) Pause();
+	if (counter > 1000) mod = 6;
+	wxMessageOutputDebug().Printf("wxTimer event %lld.", counter++);
+	if (counter % mod == 0) {
 		int temp = rand() % 3 - 2;
 		if (temp > 0) {
-			food = new Food(-25, rand() % 480, rand() % 70 + 20, rand() % 10 + 5);
+			food = new Food(-25, rand() % 480, rand() % 50 + 10, rand() % 10 + 5);
 			food->setxydir(1, 0);
-			image = new wxStaticBitmap(this, wxID_ANY, wxBitmap("D:\\VStudio\\HungryHungryBoy\\HungryHungryBoy\\Debug\\f.png", wxBITMAP_TYPE_PNG), wxPoint(food->getx()-food->getRad(), food->gety() - food->getRad()), wxSize(2 * food->getRad(), 2 * food->getRad()));
+			
 		}
 		else if (temp < 0) {
-			food = new Food(GetClientSize().GetWidth() + 25, rand() % 480, rand() % 70 + 20, rand() % 10 + 5);
+			food = new Food(GetClientSize().GetWidth() + 25, rand() % 480, rand() % 50 + 10, rand() % 10 + 5);
 			food->setxydir(-1, 0);
-			image = new wxStaticBitmap(this, wxID_ANY, wxBitmap("D:\\VStudio\\HungryHungryBoy\\HungryHungryBoy\\Debug\\f.png", wxBITMAP_TYPE_PNG), wxPoint(food->getx() - food->getRad(), food->gety() - food->getRad()), wxSize(2*food->getRad(), 2*food->getRad()));
-		/*	bm = new wxBitmap("D:\\VStudio\\HungryHungryBoy\\HungryHungryBoy\\Debug\\f.png", wxBITMAP_TYPE_PNG);
-			mage = bm->ConvertToImage();
-			mage.Rescale(2 * food->getRad(), 2 * food->getRad());
-			wxBitmap newbm(mage);
-			image = new wxStaticBitmap(this, wxID_ANY, newb, wxPoint(food->getx() - food->getRad(), food->gety() - food->getRad()), wxSize(2*food->getRad(), 2*food->getRad())); */
 		}
 		else {
 			temp = rand() % 3 - 2; 
 			if (temp >= 0) {
-				food = new Food(rand() % GetClientSize().GetWidth(), -25, rand() % 70 + 20, rand() % 10 + 5);
+				food = new Food(rand() % GetClientSize().GetWidth(), -25, rand() % 50 + 10, rand() % 10 + 5);
 				food->setxydir(0 , 1);
-				image = new wxStaticBitmap(this, wxID_ANY, wxBitmap("D:\\VStudio\\HungryHungryBoy\\HungryHungryBoy\\Debug\\f.png", wxBITMAP_TYPE_PNG), wxPoint(food->getx() - food->getRad(), food->gety() - food->getRad()), wxSize(2*food->getRad(), 2*food->getRad()));
 			}
 			else if (temp < 0) {
-				food = new Food(rand() % GetClientSize().GetWidth(), GetClientSize().GetHeight() + 25, rand() % 70 + 20, rand() % 10 + 5);
+				food = new Food(rand() % GetClientSize().GetWidth(), GetClientSize().GetHeight() + 25, rand() % 50 + 10, rand() % 10 + 5);
 				food->setxydir(0 , -1);
-				image = new wxStaticBitmap(this, wxID_ANY, wxBitmap("D:\\VStudio\\HungryHungryBoy\\HungryHungryBoy\\Debug\\f.png", wxBITMAP_TYPE_PNG), wxPoint(food->getx() - food->getRad(), food->gety() - food->getRad()), wxSize(2*food->getRad(), 2*food->getRad()));
 			}
 		}
-		vc.push_back(make_pair(food,image));
+		vc.push_back(food);
 	}
 
 	for (it = vc.begin(); it < vc.end();) {
-		foodp = *it;
-		food = foodp.first;
-		image = foodp.second;
+		food = *it;
 		dirX = food->getxdir();
 		dirY = food->getydir();
 		food->Move(food->getSpeed() * dirX, food->getSpeed() * dirY, GetClientSize().GetWidth(), GetClientSize().GetHeight());
-		image->Move(wxPoint(food->getx() - food->getRad(), food->gety() - food->getRad()));
 		it++;
 	}
 	for (it = vc.begin(); it < vc.end();) {
-		foodp = *it;
-		food = foodp.first;
+		food = *it;
 		if (food->isOut(GetClientSize().GetWidth(), GetClientSize().GetHeight(), food->getxdir(), food->getydir())) {
 			delete food;
 			vc.erase(it);
 			wxMessageOutputDebug().Printf("Object deleted");
 			it = vc.begin();
 		}
+		else if (CircleCollide(food, mainc)) {
+			mainc->addScore(food->getScore());
+			delete food;
+			vc.erase(it);
+			wxMessageOutputDebug().Printf("Object deleted , eaten by Boy = %d",mainc->getScore());
+			it = vc.begin();
+		}
 		else it++;
 	}
 
-	
 	seto->Move(seto->getspeed(), seto->getspeed(), GetClientSize().GetWidth(), GetClientSize().GetHeight());
 	if (seto->getx() > GetClientSize().GetWidth()) seto->respawn(mainc->getx(), mainc->gety());
 	if (RectCircleCollide(mainc, seto)) {
@@ -125,6 +117,11 @@ void TimerWindow::OnTimer(wxTimerEvent &event) {
 		}
 	}
 	else mainc->Move(mainc->getSpeed(), mainc->getSpeed(), GetClientSize().GetWidth(), GetClientSize().GetHeight());
+	if (mainc->isOut(GetClientSize().GetWidth(), GetClientSize().GetHeight())) {
+		if (mainc->lifemod(-1) == 0) isOver = true;
+		mainc->respawn();
+		if (mainc->isHex()) mainc->setHex(false);
+	}
 	Refresh();
 }
 
@@ -138,15 +135,35 @@ void TimerWindow::OnKeyUp(wxKeyEvent &event)
 	}
 }
  
+
+void TimerWindow::Pause(void) {
+	if (isOver) {
+		wxMessageOutputDebug().Printf("Game Over");
+		timer->Stop();
+		return;
+	}
+	isPaused = !isPaused;
+	if (isPaused) {
+		timer->Stop();
+	}
+	else timer->Start(50);
+	Refresh();
+}
+
 void TimerWindow::OnKeyDown(wxKeyEvent &event)
 {
-	wxMessageOutputDebug().Printf("Key down event fired. Keycode=%d.", event.GetKeyCode());
-	if (event.GetKeyCode() == WXK_UP)			mainc->setxydir(0,-1);
-	else if (event.GetKeyCode() == WXK_RIGHT)	mainc->setxydir(1, 0);
-	else if (event.GetKeyCode() == WXK_LEFT)	mainc->setxydir(-1, 0);
-	else if (event.GetKeyCode() == WXK_DOWN)	mainc->setxydir(0, 1);
+	int keycode = event.GetKeyCode();
+	wxMessageOutputDebug().Printf("Key down event fired. Keycode=%d.", keycode);
+	if (keycode == 'p' || keycode == 'P') {
+		Pause();
+		return;
+	}
+	if (keycode == WXK_UP)			mainc->setxydir(0,-1);
+	else if (keycode == WXK_RIGHT)	mainc->setxydir(1, 0);
+	else if (keycode == WXK_LEFT)	mainc->setxydir(-1, 0);
+	else if (keycode == WXK_DOWN)	mainc->setxydir(0, 1);
 
-	if (event.GetKeyCode() == 88 && !boost) {
+	if (keycode == 88 && !boost) {
 		boost = true;
 		mainc->addSpeed(25);
 	}
@@ -158,4 +175,9 @@ bool TimerWindow::RectCircleCollide(Boy * c, Slider *b) {
 	int closestY = min(abs(b->gety() - c->gety()), abs(b->gety() - c->gety() + b->geth()));
 
 	return (closestX * closestX) + (closestY * closestY) < (c->getRad() * c->getRad());
+}
+
+bool TimerWindow::CircleCollide(Food * a, Boy * b) {
+	if ((a->getx() - b->getx())*(a->getx() - b->getx()) + (a->gety() - b->gety())*(a->gety() - b->gety()) <= (double)((a->getRad() + b->getRad())*(a->getRad() + b->getRad()))) return true;
+	return false;
 }
